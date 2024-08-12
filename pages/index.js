@@ -1,23 +1,27 @@
 import { useState } from "react";
-import copy from "copy-to-clipboard";
+import axios from "axios";
 
 const Index = () => {
   const [videoURL, setVideoURL] = useState("");
   const [mp3Link, setMp3Link] = useState("");
 
-  const getYouTubeMp3 = (url) => {
-    let regExp = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/;
-    let match = url.match(regExp);
+  const getYouTubeMp3 = async (url) => {
+    try {
+      const response = await axios.post("http://localhost:5000/download_mp3", {
+        url: url,
+        filename: "my_audio"  // you can customize the filename here
+      });
 
-    if (match && match[1].length === 11) {
-      const videoID = match[1];
-      const mp3DownloadUrl = `https://example.com/download/mp3/${videoID}`;
-
-      setMp3Link(mp3DownloadUrl);
-      setVideoURL("");
-    } else {
-      setMp3Link("");
+      if (response.data.success) {
+        setMp3Link(response.data.mp3_file);
+      } else {
+        console.error("Failed to download MP3");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
     }
+
+    setVideoURL("");
   };
 
   return (
@@ -50,18 +54,12 @@ const Index = () => {
           <h2 className="text-xl font-semibold mb-4">MP3 Download Link</h2>
           <div className="text-center">
             <a
-              href={mp3Link}
+              href={`/${mp3Link}`}
               className="btn-blue"
               download
             >
               Download MP3
             </a>
-            <button
-              className="btn-blue ml-4"
-              onClick={() => copy(mp3Link)}
-            >
-              Copy Download Link
-            </button>
           </div>
         </div>
       )}
