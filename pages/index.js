@@ -13,7 +13,7 @@ const Index = () => {
       });
 
       if (response.data.success) {
-        setMp3Link(response.data.file_url);
+        setMp3Link(response.data.mp3_file);
       } else {
         console.error("Failed to download MP3");
       }
@@ -54,7 +54,7 @@ const Index = () => {
           <h2 className="text-xl font-semibold mb-4">MP3 Download Link</h2>
           <div className="text-center">
             <a
-              href={`http://localhost:5000${mp3Link}`}
+              href={mp3Link}
               className="btn-blue"
               download
             >
