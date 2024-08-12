@@ -1,42 +1,41 @@
 import { useState } from "react";
-import axios from "axios";
+import copy from "copy-to-clipboard";
 
 const Index = () => {
   const [videoURL, setVideoURL] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [downloadLink, setDownloadLink] = useState("");
 
-  const getYouTubeMp3 = async (url) => {
-    setIsLoading(true);
-    setError("");
+  const getYouTubeMP3 = async (url) => {
     try {
-      const response = await axios.post("http://localhost:5000/download_mp3", {
-        url: url,
-        filename: "my_audio"  // you can customize the filename here
+      // Assuming you have an API endpoint to handle the conversion
+      const response = await fetch("/api/convert-to-mp3", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url }),
       });
 
-      if (response.data.success) {
-        // Trigger download
-        window.location.href = `http://localhost:5000/get_mp3/${response.data.mp3_file}`;
+      if (response.ok) {
+        const data = await response.json();
+        setDownloadLink(data.mp3Url); // Assuming the response contains the MP3 URL
+        setVideoURL("");
       } else {
-        setError("Failed to download MP3");
+        console.error("Failed to convert video to MP3");
+        setDownloadLink("");
       }
     } catch (error) {
-      setError("An error occurred: " + error.message);
-    } finally {
-      setIsLoading(false);
-      setVideoURL("");
+      console.error("Error:", error);
+      setDownloadLink("");
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          YouTube MP3 Downloader
-        </h1>
+        <h1 className="text-3xl font-bold mb-2">YouTube MP3 Downloader</h1>
         <p className="text-gray-600">
-          Download high-quality MP3 audio from YouTube videos.
+          Convert YouTube videos to MP3 and download them.
         </p>
       </header>
       <div className="text-center">
@@ -49,13 +48,29 @@ const Index = () => {
         />
         <button
           className="btn-blue mt-2"
-          onClick={() => getYouTubeMp3(videoURL)}
-          disabled={isLoading}
+          onClick={() => getYouTubeMP3(videoURL)}
         >
-          {isLoading ? "Processing..." : "Download MP3"}
+          Convert to MP3
         </button>
       </div>
-      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {downloadLink && (
+        <div className="mt-8 text-center">
+          <h2 className="text-xl font-semibold mb-4">Download MP3</h2>
+          <a
+            href={downloadLink}
+            className="btn-blue"
+            download="video.mp3"
+          >
+            Download MP3
+          </a>
+          <button
+            className="btn-blue mt-2"
+            onClick={() => copy(downloadLink)}
+          >
+            Copy MP3 URL
+          </button>
+        </div>
+      )}
     </div>
   );
 };
