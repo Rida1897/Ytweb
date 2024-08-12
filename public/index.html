@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 Downloader</title>
+</head>
+<body>
+    <h1>MP3 Downloader</h1>
+    <form id="mp3-form">
+        <input type="text" id="url" placeholder="Enter YouTube URL" required>
+        <button type="submit">Download MP3</button>
+    </form>
+
+    <h2>Bulk MP3 Downloader</h2>
+    <form id="bulk-mp3-form">
+        <input type="file" id="csvFilePath" accept=".csv" required>
+        <button type="submit">Download MP3s</button>
+    </form>
+
+    <script>
+        document.getElementById('mp3-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const url = document.getElementById('url').value;
+
+            fetch('/download-mp3', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('bulk-mp3-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const csvFilePath = document.getElementById('csvFilePath').files[0].path;
+
+            fetch('/download-bulk-mp3', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ csvFilePath })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

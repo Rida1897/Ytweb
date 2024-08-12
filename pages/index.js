@@ -1,83 +1,46 @@
-import { useState } from "react";
-import copy from "copy-to-clipboard";
+const express = require('express');
+const { PythonShell } = require('python-shell');
+const path = require('path');
+const app = express();
+const port = 3000;
 
-const Index = () => {
-  const [videoURL, setVideoURL] = useState("");
-  const [thumbnailOptions, setThumbnailOptions] = useState([]);
+app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-  const getYouTubeThumbnail = (url) => {
-    let regExp = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/;
-    let match = url.match(regExp);
+// Route for the main page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-    if (match && match[1].length === 11) {
-      const videoURL = match[1];
-      const thumbnailBaseUrl = "http://img.youtube.com/vi/";
+// Route for YouTube MP3 downloader
+app.post('/download-mp3', (req, res) => {
+    const { url } = req.body;
 
-      const options = [
-        { resolution: "HD (1280x720)", code: "maxresdefault" },
-        { resolution: "SD (640x480)", code: "sddefault" },
-        { resolution: "Normal (480x360)", code: "hqdefault" },
-        { resolution: "Medium (320x180)", code: "mqdefault" },
-        { resolution: "Low (120x90)", code: "default" },
-      ];
+    const options = {
+        args: [url]
+    };
 
-      const thumbnailOptions = options.map((option) => ({
-        resolution: option.resolution,
-        url: `${thumbnailBaseUrl}${videoURL}/${option.code}.jpg`,
-      }));
+    PythonShell.run('download_mp3.py', options, (err, results) => {
+        if (err) res.status(500).send({ error: err.message });
+        res.send({ message: `MP3 file saved as: ${results}` });
+    });
+});
 
-      setThumbnailOptions(thumbnailOptions);
-      setVideoURL("");
-    } else {
-      setThumbnailOptions([]);
-    }
-  };
+// Route for bulk YouTube MP3 downloader
+app.post('/download-bulk-mp3', (req, res) => {
+    const { csvFilePath } = req.body;
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          Youtube Thumbnail Downloader
-        </h1>
-        <p className="text-gray-600">
-          Download high-quality thumbnails from YouTube videos.
-        </p>
-      </header>
-      <div className="text-center">
-        <input
-          type="text"
-          className="w-full md:w-1/2 px-4 py-2 border rounded"
-          placeholder="Enter YouTube URL"
-          value={videoURL}
-          onChange={(e) => setVideoURL(e.target.value)}
-        />
-        <button
-          className="btn-blue mt-2"
-          onClick={() => getYouTubeThumbnail(videoURL)}
-        >
-          Download Thumbnails
-        </button>
-      </div>
-      {thumbnailOptions.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Thumbnail Options</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {thumbnailOptions.map((option, index) => (
-              <div key={index} className="thumbnail-option">
-                <img src={option.url} alt={`Thumbnail ${index + 1}`} />
-                <button
-                  className="btn-blue mt-2"
-                  onClick={() => copy(option.url)}
-                >
-                  Copy Image URL
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+    const options = {
+        args: [csvFilePath]
+    };
 
-export default Index;
+    PythonShell.run('download_bulk_mp3.py', options, (err, results) => {
+        if (err) res.status(500).send({ error: err.message });
+        res.send({ message: results });
+    });
+});
+
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
