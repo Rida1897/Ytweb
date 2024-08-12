@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_file
 import yt_dlp
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 def download_youtube_video_as_mp3(url, output_path='.', filename='output'):
     ydl_opts = {
@@ -12,7 +14,7 @@ def download_youtube_video_as_mp3(url, output_path='.', filename='output'):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'outtmpl': os.path.join(output_path, f'{filename}.mp3'),
+        'outtmpl': os.path.join(output_path, f'{filename}.%(ext)s'),
     }
 
     try:
@@ -38,13 +40,16 @@ def download_mp3():
     mp3_file = download_youtube_video_as_mp3(url, output_path, filename)
     
     if mp3_file and os.path.exists(mp3_file):
-        return jsonify({"success": True, "mp3_file": f"/downloads/{filename}.mp3"})
+        return jsonify({"success": True, "mp3_file": os.path.basename(mp3_file)})
     else:
         return jsonify({"error": "Failed to download MP3"}), 500
 
-@app.route('/downloads/<filename>', methods=['GET'])
-def serve_file(filename):
-    return send_from_directory('./downloads', filename)
+@app.route('/get_mp3/<filename>', methods=['GET'])
+def get_mp3(filename):
+    try:
+        return send_file(f'./downloads/{filename}', as_attachment=True)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
