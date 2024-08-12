@@ -7,14 +7,20 @@
     "start": "next start"
   },
   "dependencies": {
+    "copy-to-clipboard": "^3.3.1",
+    "express": "^4.19.2",
     "next": "latest",
+    "next-seo": "^4.7.3",
+    "postcss-flexbugs-fixes": "^5.0.2",
+    "postcss-preset-env": "^7.0.1",
+    "python-shell": "^5.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "copy-to-clipboard": "^3.3.1",
-    "next-seo": "^4.7.3",
-    "tailwindcss": "^2.2.19",
-    "postcss-flexbugs-fixes": "^5.0.2",
-    "postcss-preset-env": "^7.0.1"
+    "tailwindcss": "^2.2.19"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "main": "postcss.config.js",
+  "keywords": [],
+  "author": "",
+  "description": ""
 }
